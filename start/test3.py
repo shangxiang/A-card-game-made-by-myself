@@ -30,8 +30,8 @@ for i in range(11):
 
 pygame.event.set_allowed([MOUSEBUTTONDOWN, MOUSEBUTTONUP,KEYDOWN])
 
-#font = pygame.font.SysFont("arial", 20)
-#font_height = font.get_linesize()
+default_font = pygame.font.SysFont("arial", 32)
+font_height = default_font.get_linesize()
 
 
 class component():
@@ -228,8 +228,6 @@ while True:
     if state == 1:
         screen.blit(login_interface.interface, (0, 0))
         login_interface.component["login_bt"].mouseon()
-        flag = login_interface.component["login_bt"].isclick()
-        print(flag)
         pygame.display.update()
 
         for event in pygame.event.get():
@@ -278,28 +276,30 @@ while True:
                     count = count - 1
                     key = key[0:count]
                     login_interface.interface.blit(bk2, dest=(330 + count * 18, 182))
-                if event.key == K_RETURN or login_interface.component["login_bt"].isclick():
-                    s = ""
-                    k = ""
-                    for i in account:
-                        s = s+str(i)
-                    print(s)
-                    for i in key:
-                        k = k+str(i)
-                    print(k)
-                    try:
-                        account_file = open("%s.txt"%s,'r+')
-                    except BaseException:
-                        print("new player")
-                        account_file = open("%s.txt" % s, 'w+')
-                        account_file.write("账户：%s\t密码：%s" % (s, k))
-                        state = 3
-                    else:
-                        state = 2
-                        account_file.write("账户：%s\t密码：%s" % (s, k))
-                    count = 0
             if event.type == QUIT:
                 exit()
+        flag = login_interface.component["login_bt"].isclick()
+        if flag:
+            s = ""
+            k = ""
+            for i in account:
+                s = s + str(i)
+            print(s)
+            for i in key:
+                k = k + str(i)
+            print(k)
+            try:
+                account_file = open("%s.txt" % s, 'r+')
+            except BaseException:
+                print("new player")
+                account_file = open("%s.txt" % s, 'w+')
+                account_file.write("账户：%s\t密码：%s" % (s, k))
+                state = 3
+            else:
+                state = 2
+                account_file.write("账户：%s\t密码：%s" % (s, k))
+            count = 0
+        pygame.display.update()
     if state == 2:
         for event in pygame.event.get():
             if event.type == QUIT:
@@ -308,7 +308,7 @@ while True:
                 screen.blit(login_interface.interface, (0, 0))
                 screen.blit(o_p, (280, 245))
                 pygame.display.update()
-                time.sleep(2)
+                time.sleep(1)
                 state = 4
     if state == 3:
         for event in pygame.event.get():
@@ -318,7 +318,7 @@ while True:
                 screen.blit(login_interface.interface, (0, 0))
                 screen.blit(n_p, (280, 245))
                 pygame.display.update()
-                time.sleep(2)
+                time.sleep(1)
                 state = 4
     if state == 4:
         main_interface.addbutton(x,75,450,300,name = "mycard",image=mc)
@@ -328,10 +328,14 @@ while True:
         main_interface.addbutton(0, 75, 450, 300, name="left", image=lt)
         main_interface.addbutton(750, 75, 450, 300, name="right", image=rt)
         screen.blit(main_interface.interface,dest=(0,0))
+        screen.blit(default_font.render(s,True,(0,0,0)),(10,10))
         pygame.display.update()
         for event in pygame.event.get():
             if event.type == QUIT:
                 exit()
+        if main_interface.component["right"].isclick():
+            x = x+10
+
 
 
 

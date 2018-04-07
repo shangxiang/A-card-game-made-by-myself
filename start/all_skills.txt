@@ -1,0 +1,6 @@
+打击	resource1\\skills\\daji.png
+保护	resource1\\skills\\baohu.png
+神经质	resource1\\skills\\shenjingzhi.png
+正常化	resource1\\skills\\zhengchanghua.png
+赌神	resource1\\skills\\dushen.png
+败犬化	resource1\\skills\\baiquanhua.png

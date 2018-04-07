@@ -1,0 +1,2 @@
+章鱼哥	100	200	1	打击,保护,神经质,正常化	100	resource1\\cards\\zhangyuge.png
+城之内	200	100	1	打击,保护,赌神,败犬化	500	resource1\\cards\\chengzhinei.png

@@ -1,0 +1,2 @@
+1	1	100	1
+0	章鱼哥	101	202	2	打击,保护,神经质,正常化	100	resource1\\cards\\zhangyuge.png
