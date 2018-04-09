@@ -1,13 +1,12 @@
 #!/usr/bin/python2.6
 # -*- coding: utf-8 -*-
-
-
 import pygame
 import time
 from pygame.locals import *
 from sys import exit
+import random
 
-
+random.seed()
 pygame.init()
 
 board = "resource1\\board.jpg"
@@ -141,6 +140,8 @@ class player():
         self.money = money
         self.level = level
         self.cards = []
+        self.id = []
+        self.team = []
         self.file = file
         self.size = 0
         #file.write("%s\t%s\t%d\t%d\n"%(self.account,self.key,self.money,self.level))
@@ -161,8 +162,9 @@ class player():
                 words = line.split('\n')
                 words = words[0].split('\t')
                 card = character(words[1],int(words[2]),int(words[3]),int(words[4]),words[5],
-                                 int(words[6]),words[7],self.account,int(words[0]))
+                                 int(words[6]),words[7],self.account,int(words[0]),int(words[8]))
                 self.cards.append(card)
+                self.id.append(int(words[8]))
                 line = self.file.readline()
             self.size = len(self.cards)
 
@@ -171,14 +173,24 @@ class player():
         for i in all_cards:
             if i.name == name:
                 break
-        new_card = character(i.name,i.attack,i.life,1,player=self.account,number=self.size-1)
+        for j in range(len(self.cards)+1):
+            if j in self.id:
+                continue
+            else : break
+        new_card = character(i.name,i.attack,i.life,1,player=self.account,number=self.size-1,id=j)
         self.cards.append(new_card)
+        self.id.append(j)
         self.save()
 
     def deletecard(self,number):
         for i in range(len(self.cards)):
             if self.cards[i].number == number:
+                id = self.cards[i].id
                 del self.cards[i]
+                break
+        for j in range(len(self.id)):
+            if self.id[j] == id:
+                del self.id[j]
                 break
         self.size = len(self.cards)
         self.save()
@@ -188,16 +200,17 @@ class player():
         new_file = open("user\%s.txt"%self.account,'w+')
         new_file.write("%s\t%s\t%d\t%d\n" % (self.account, self.key, self.money, self.level))
         for i in range(len(self.cards)):
-            new_file.write("%d\t%s\t%d\t%d\t%d\t%s,%s,%s,%s\t%d\t%s\n"%(i,self.cards[i].name,self.cards[i].attack,
-                                                               self.cards[i].life,self.cards[i].level,
-                                                               self.cards[i].skill[0],self.cards[i].skill[1],
-                                                               self.cards[i].skill[2],self.cards[i].skill[3],
-                                                               self.cards[i].lucky,self.cards[i].image))
+            new_file.write("%d\t%s\t%d\t%d\t%d\t%s,%s,%s,%s\t%d\t%s\t%d\n"%(i,self.cards[i].name,self.cards[i].attack,
+                                                                            self.cards[i].life,self.cards[i].level,
+                                                                            self.cards[i].skill[0],self.cards[i].skill[1],
+                                                                            self.cards[i].skill[2],self.cards[i].skill[3],
+                                                                            self.cards[i].lucky,self.cards[i].image,
+                                                                            self.cards[i].id))
         self.file = new_file
 
 
 class character():
-    def __init__(self,name,attack,life,level,skill=None,lucky=None,image=None,player = None,number = None):
+    def __init__(self,name,attack,life,level,skill=None,lucky=None,image=None,player = None,number = None,id = None):
         self.number = number
         self.image = image
         self.player = player
@@ -205,6 +218,7 @@ class character():
         self.attack = attack
         self.life = life
         self.level = level
+        self.id = id
         if skill is not None:
             self.skill = []
             templete = skill.split(',')
@@ -217,6 +231,7 @@ class character():
                     self.skill = i.skill
                     self.lucky = i.lucky
                     self.image = i.image
+                    break
 
     def show(self,surface=screen):
         templete = pygame.image.load(self.image).convert_alpha()
@@ -333,11 +348,23 @@ confirm = pygame.image.load("resource1\\confirm.png").convert_alpha()
 #choose = pygame.image.load("resource1\\choose.png").convert_alpha()
 levelup_interface = interface(800,450)
 
+open_box = pygame.image.load("resource1\\opened_box.png").convert_alpha()
+open_box = pygame.transform.scale(open_box,(800,450))
+card_pool1 = pygame.image.load("resource1\\card_pool1.png").convert_alpha()
+card_pool2 = pygame.image.load("resource1\\card_pool2.png").convert_alpha()
+get_card_interface = interface(800,450)
+cp1 = component(get_card_interface.interface,175,75,450,300,image = card_pool1)
+cp2 = component(get_card_interface.interface,175,75,450,300,image= card_pool2)
+card_pool = [cp1,cp2]
+print(len(card_pool))
+
+
 counter = 0
 x = 0
 y = 0
 state = 0
 count = 0
+count_7 = 0
 account = []
 key = []
 while True:
@@ -661,9 +688,81 @@ while True:
             if event.type == QUIT:
                 exit()
     if state == 7:
+        get_card_interface.interface.blit(bg2, dest=(0, 0))
+        card_pool[count_7].draw()
+        get_card_interface.addbutton(290,390,100,50,"back",image= backspace)
+        get_card_interface.component["back"].mouseon()
+        beback = get_card_interface.component["back"].isclick()
+        get_card_interface.addbutton(410,390,100,50,"confirm",image=confirm)
+        get_card_interface.component["confirm"].mouseon()
+        besure = get_card_interface.component["confirm"].isclick()
+        get_card_interface.addbutton(0, 75, 50, 300, name="left", image=lt)
+        last_flag = get_card_interface.component["left"].mouseon()
+        last_flag = get_card_interface.component["left"].isclick()
+        get_card_interface.addbutton(750, 75, 50, 300, name="right", image=rt)
+        next_flag = get_card_interface.component["right"].mouseon()
+        next_flag = get_card_interface.component["right"].isclick()
+        screen.blit(get_card_interface.interface, dest=(0, 0))
+        screen.blit(chinese_font.render("账户：%s" % s, True, (0, 0, 0)), (10, 10))
+        screen.blit(chinese_font.render("金币：%d" % user.money, True, (0, 0, 0)), (10, 30))
+        pygame.display.update()
         for event in pygame.event.get():
             if event.type == QUIT:
                 exit()
+            if next_flag and count_7<len(card_pool)-1:
+                count_7 += 1
+            if last_flag and count_7>0:
+                count_7 -= 1
+            if beback:
+                state = 4
+            if besure:
+                state = 86
+
+    if state == 86:
+        screen.blit(get_card_interface.interface, dest=(0, 0))
+        screen.blit(mk, dest=(0, 0))
+        screen.blit(mk, dest=(0, 0))
+        screen.blit(mk, dest=(0, 0))
+        beback2 = component(screen, 470, 360, 100, 50, image=backspace)
+        beback2.draw()
+        beback2.mouseon()
+        if user.money < 100:
+            screen.blit(chinese_font_32.render("金币不足！请点击返回！", True, (0, 0, 0)), dest=(150, 200))
+            besure2 = component(screen, 100000, 360, 100, 50, image=confirm)
+        else:
+            screen.blit(chinese_font_32.render("此操作将消耗100金币,确定？", True, (0, 0, 0)), dest=(150, 200))
+            besure2 = component(screen, 350, 360, 100, 50, image=confirm)
+            besure2.draw()
+            besure2.mouseon()
+        pygame.display.update()
+        for event in pygame.event.get():
+            if event.type == QUIT:
+                exit()
+            if beback2.isclick():
+                state = 7
+            if besure2.isclick():
+                i = random.randint(0,len(all_cards)-1)
+                user.getcard(all_cards[i].name)
+                user.money -= 100
+                user.save()
+                screen.blit(chinese_font_32.render("正在努力打开箱子...", True, (0, 0, 0)), dest=(150, 250))
+                time.sleep(1)
+                state = 85
+    if state == 85:
+        screen.blit(open_box,dest=(0,0))
+        screen.blit(chinese_font_32.render("恭喜获得%s！"%all_cards[i].name, True, (0, 0, 0)), dest=(10, 10))
+        templete = pygame.image.load(all_cards[i].image).convert_alpha()
+        screen.blit(templete,dest=(300,30))
+        screen.blit(chinese_font.render("——点击任意位置返回——",True,(0,0,0)),dest=(300,400))
+        pygame.display.update()
+        for event in pygame.event.get():
+            if event.type == QUIT:
+                exit()
+            if event.type == MOUSEBUTTONDOWN:
+                state = 7
+
+
+
     if state == 8:
         for event in pygame.event.get():
             if event.type == QUIT:
