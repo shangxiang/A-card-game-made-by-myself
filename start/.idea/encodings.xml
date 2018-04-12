@@ -2,7 +2,7 @@
 <project version="4">
   <component name="Encoding">
     <file url="file://$PROJECT_DIR$/all_cards.txt" charset="GBK" />
+    <file url="file://$PROJECT_DIR$/all_combat.txt" charset="GBK" />
     <file url="file://$PROJECT_DIR$/user/1.txt" charset="GBK" />
-    <file url="file://$PROJECT_DIR$/user/3345456.txt" charset="GBK" />
   </component>
 </project>

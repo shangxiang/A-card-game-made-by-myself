@@ -1,8 +1,0 @@
-1	1	0	1
-0	章鱼哥	104	202	3	打击,保护,神经质,正常化	100	resource1\\cards\\zhangyuge.png	0
-1	章鱼哥	100	200	1	打击,保护,神经质,正常化	100	resource1\\cards\\zhangyuge.png	1
-2	章鱼哥	100	200	1	打击,保护,神经质,正常化	100	resource1\\cards\\zhangyuge.png	3
-3	城之内	200	100	1	打击,保护,赌神,败犬化	500	resource1\\cards\\chengzhinei.png	4
-4	章鱼哥	100	200	1	打击,保护,神经质,正常化	100	resource1\\cards\\zhangyuge.png	5
-5	城之内	200	100	1	打击,保护,赌神,败犬化	500	resource1\\cards\\chengzhinei.png	2
-6	章鱼哥	100	200	1	打击,保护,神经质,正常化	100	resource1\\cards\\zhangyuge.png	6
