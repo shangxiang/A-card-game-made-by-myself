@@ -90,12 +90,14 @@ class component():
         if self.isbutton is False:
             return False
         (l,m,r) = pygame.mouse.get_pressed()
+        (l1, m1, r1) = pygame.mouse.get_pressed()
         if self.mouseon():
             if l == 1:
                 if self.image is None:
                     pygame.draw.rect(self.surface, (0.6 * self.color[0], 0.6 * self.color[1], 0.6 * self.color[2]),
                                      Rect(self.x_pos, self.y_pos, self.x_len, self.y_len))
                 pygame.draw.rect(self.surface, (0, 0, 0), Rect(self.x_pos+2, self.y_pos+2, self.x_len-4, self.y_len-4), 4)
+                time.sleep(0.2)
                 return True
             else:
                 return False
@@ -141,7 +143,7 @@ class player():
         self.level = level
         self.cards = []
         self.id = []
-        self.team = []
+        self.team = [-1,-1,-1]
         self.file = file
         self.size = 0
         #file.write("%s\t%s\t%d\t%d\n"%(self.account,self.key,self.money,self.level))
@@ -167,6 +169,11 @@ class player():
                 self.id.append(int(words[8]))
                 line = self.file.readline()
             self.size = len(self.cards)
+
+    def findcard(self,id):
+        for card in self.cards:
+            if card.id == id:
+                return card.image
 
     def getcard(self,name):
         self.size += 1
@@ -250,16 +257,46 @@ class character():
 
 
 class tech():
-    def __init__(self,name,image):
+    def __init__(self,name,image,alliance=None,enermy=None):
         self.name = name
         self.image = image
+        self.action1 = alliance
+        self.action2 = enermy
 
+
+class combat():
+    def __init__(self,level,enermy,script):
+        self.level = level
+        self.enermy = enermy
+        self.script = script
+
+
+def show_script(level):
+    while True:
+        screen.blit(bg2,dest=(0,0))
+        screen.blit(chinese_font_32.render('%s'%all_combat[level].script,True,(0,0,0)),dest=(30,30))
+        (ll,mm,rr) = pygame.mouse.get_pressed()
+        if ll == 1:
+            return
+        pygame.display.update()
 
 def find_skill(name):
     for i in all_skills:
         if i.name == name:
             return i.image
-    else: return False
+    return False
+
+def find_card(name):
+    for i in all_cards:
+        if i.name == name:
+            return  i
+    return False
+
+def find_combat(level):
+    for i in all_combat:
+        if i.level == level:
+            return i
+    return False
 
 # the card database
 cards_file = open("all_cards.txt",'r')
@@ -273,6 +310,7 @@ while a_card != '':
                          info[6])
     a_card = cards_file.readline()
     all_cards.append(new_card)
+cards_file.close()
 
 skill_file = open("all_skills.txt",'r')
 all_skills = []
@@ -284,6 +322,18 @@ while a_skill != '':
     new_skill = tech(info[0],info[1])
     all_skills.append(new_skill)
     a_skill = skill_file.readline()
+skill_file.close()
+
+combat_file = open("all_combat.txt",'r')
+all_combat = []
+a_combat = combat_file.readline()
+while a_combat != '':
+    info = a_combat.split('\n')
+    info = info[0].split('\t')
+    new_combat = combat(int(info[0]),info[1],info[2])
+    all_combat.append(new_combat)
+    a_combat = combat_file.readline()
+combat_file.close()
 
 # the login interface
 login_image = "resource1\login.png"
@@ -358,6 +408,21 @@ cp2 = component(get_card_interface.interface,175,75,450,300,image= card_pool2)
 card_pool = [cp1,cp2]
 print(len(card_pool))
 
+team_interface =interface(800,450)
+blank = pygame.image.load("resource1\\cards\\blank.png").convert_alpha()
+
+choose_interface = interface(800,450)
+choose_button = pygame.image.load("resource1\\choose.png").convert_alpha()
+
+choose_level = interface(800,450)
+mask2 = pygame.image.load("resource1\\unlocked.png").convert_alpha()
+chap1 = pygame.image.load("resource1\\first_chap.png").convert_alpha()
+chap2 = pygame.image.load("resource1\\second_chap.png").convert_alpha()
+chap3 = pygame.image.load("resource1\\third_chap.png").convert_alpha()
+chap4 = pygame.image.load("resource1\\forth_chap.png").convert_alpha()
+chap = [chap1,chap2,chap3,chap4]
+
+battle_interface = interface(800,450)
 
 counter = 0
 x = 0
@@ -365,6 +430,8 @@ y = 0
 state = 0
 count = 0
 count_7 = 0
+count_6 = 0
+count_83 = 0
 account = []
 key = []
 while True:
@@ -684,9 +751,109 @@ while True:
                 get = False
                 state = 9
     if state == 6:
+        choose_level.interface.blit(bg2,dest=(0,0))
+        for i in range(count_6,count_6+3):
+            pos = i%3
+            if i<=len(chap):
+                choose_level.addbutton(50+pos*250,40,200,350,"chap%d"%i,image=chap[i])
+            else:break
+            if i<user.level:
+                choose_level.component["chap%d"%i].mouseon()
+                flag6 = choose_level.component["chap%d"%i].isclick()
+                if flag6:
+                    if user.team[0] == -1 and user.team[1] == -1 and user.team[2] == -1:
+                        continue
+                    else:
+                        show_script(i)
+                        battle_level = i
+                        state = 83
+            else :
+                choose_level.interface.blit(mask2,dest=(50+pos*250,40))
+        choose_level.addbutton(470, 400, 100, 50, "back", image=backspace)
+        choose_level.component["back"].mouseon()
+        beback = choose_level.component["back"].isclick()
+        choose_level.addbutton(0, 75, 50, 300, name="left", image=lt)
+        choose_level.addbutton(750, 75, 50, 300, name="right", image=rt)
+        choose_level.component["left"].mouseon()
+        last_flag = choose_level.component["left"].isclick()
+        choose_level.component["right"].mouseon()
+        next_flag = choose_level.component["right"].isclick()
+        screen.blit(chinese_font.render("账户：%s" % s, True, (0, 0, 0)), (10, 10))
+        screen.blit(choose_level.interface,dest=(0,0))
+        pygame.display.update()
         for event in pygame.event.get():
             if event.type == QUIT:
                 exit()
+            if next_flag and count_6<len(chap)-1:
+                count += 3
+            if last_flag and count_6>0:
+                count_6 -= 3
+            if beback:
+                state = 4
+    if state == 83:
+        battle_interface.interface.blit(bg2,dest=(0,0))
+        templete = find_combat(battle_level+1)
+        enermy = find_card(templete.enermy)
+        templete = pygame.image.load(enermy.image).convert_alpha()
+        battle_interface.addbutton(600,100,200,350,name = "enermy",image=templete)
+        battle_interface.addbutton(650,25,100,50,"back",image=backspace)
+        battle_interface.component["back"].mouseon()
+        beback = battle_interface.component["back"].isclick()
+        i = user.team[count_83]
+        if i == -1:
+            if count_83<2:
+                count_83 += 1
+            continue
+        else:
+            ally = character(i.name,i.attack,i.life,i.level)
+            templete = pygame.image.load(ally.image).convert_alpha()
+            battle_interface.addbutton(0, 0, 200, 350, image=templete)
+            templete = pygame.image.load(find_skill(ally.skill[0])).convert_alpha()
+            battle_interface.addbutton(0, 350, 100, 50, "skill1", image=templete)
+            battle_interface.component["skill1"].mouseon()
+            skill1 = battle_interface.component["skill1"].isclick()
+            templete = pygame.image.load(find_skill(ally.skill[1])).convert_alpha()
+            battle_interface.addbutton(100, 350, 100, 50, "skill2", image=templete)
+            battle_interface.component["skill1"].mouseon()
+            skill2 = battle_interface.component["skill2"].isclick()
+            templete = pygame.image.load(find_skill(ally.skill[2])).convert_alpha()
+            battle_interface.addbutton(0, 400, 100, 50, "skill3", image=templete)
+            battle_interface.component["skill1"].mouseon()
+            skill3 = battle_interface.component["skill3"].isclick()
+            templete = pygame.image.load(find_skill(ally.skill[3])).convert_alpha()
+            battle_interface.addbutton(100, 400, 100, 50, "skill4", image=templete)
+            battle_interface.component["skill1"].mouseon()
+            skill4 = battle_interface.component["skill4"].isclick()
+        screen.blit(battle_interface.interface,dest=(0,0))
+        pygame.display.update()
+        for event in pygame.event.get():
+            if event.type == QUIT:
+                exit()
+            if beback:
+                state = 82
+    if state == 82:
+        screen.blit(battle_interface.interface,dest=(0,0))
+        screen.blit(mk,dest=(0,0))
+        screen.blit(mk, dest=(0,0))
+        screen.blit(mk, dest=(0,0))
+        screen.blit(chinese_font_32.render("确定返回？", True, (0, 0, 0)), dest=(150, 200))
+        beback2 = component(screen, 470, 360, 100, 50, image=backspace)
+        beback2.draw()
+        beback2.mouseon()
+        beback3 = beback2.isclick()
+        besure2 = component(screen, 350, 360, 100, 50, image=confirm)
+        besure2.draw()
+        besure2.mouseon()
+        besure3 = besure2.isclick()
+        pygame.display.update()
+        for event in pygame.event.get():
+            if event.type == QUIT:
+                exit()
+            if beback3:
+                state = 83
+            if besure3:
+                state = 6
+
     if state == 7:
         get_card_interface.interface.blit(bg2, dest=(0, 0))
         card_pool[count_7].draw()
@@ -761,12 +928,71 @@ while True:
             if event.type == MOUSEBUTTONDOWN:
                 state = 7
 
-
-
     if state == 8:
+        team_interface.interface.blit(bg2,dest=(0,0))
+        for one in range(3):
+            if user.team[one] != -1:
+                templete = pygame.image.load(user.team[one].image).convert_alpha()
+                team_interface.addbutton(50+one*250,40,200,350,"seat%d"%one,image=templete)
+            else:
+                team_interface.addbutton(50 + one * 250, 40, 200, 350, "seat%d" % one, image=blank)
+            team_interface.component["seat%d"%one].mouseon()
+            if team_interface.component["seat%d"%one].isclick():
+                state = 84
+                break
+
+        team_interface.addbutton(470, 400, 100, 50, "back", image=backspace)
+        team_interface.component["back"].mouseon()
+        beback = team_interface.component["back"].isclick()
+        screen.blit(team_interface.interface,dest=(0,0))
+        pygame.display.update()
         for event in pygame.event.get():
             if event.type == QUIT:
                 exit()
+            if beback:
+                state = 4
+    if state == 84:
+        choose_interface.interface.blit(bg2, dest=(0, 0))
+        choose_interface.addbutton(300, 10, 200, 50, "title", image=preview)
+        choose_interface.addbutton(350, 60, 100, 50, "name", image=name)
+        choose_interface.addbutton(350, 120, 100, 50, "attack", image=attack)
+        choose_interface.addbutton(350, 180, 100, 50, "life", image=life)
+        choose_interface.addbutton(350, 240, 100, 50, "skill", image=skill)
+        choose_interface.addbutton(350, 360, 100, 50, "choose", image=choose_button)
+        choose_interface.addbutton(470, 360, 100, 50, "back", image=backspace)
+        choose_interface.addbutton(0, 75, 50, 300, name="left", image=lt)
+        choose_interface.addbutton(750, 75, 50, 300, name="right", image=rt)
+        choose_interface.component["choose"].mouseon()
+        choose_interface.component["back"].mouseon()
+        choose_interface.component["left"].mouseon()
+        last_flag = choose_interface.component["left"].isclick()
+        choose_interface.component["right"].mouseon()
+        next_flag = choose_interface.component["right"].isclick()
+        screen.blit(choose_interface.interface, dest=(0, 0))
+        screen.blit(chinese_font.render("账户：%s" % s, True, (0, 0, 0)), (10, 10))
+        screen.blit(chinese_font.render("收藏数：%d" % user.size, True, (0, 0, 0)), (10, 30))
+        goback = choose_interface.component["back"].isclick()
+        chosen = choose_interface.component["choose"].isclick()
+        user.cards[y].show()
+        pygame.display.update()
+        for event in pygame.event.get():
+            if event.type == QUIT:
+                exit()
+            if last_flag and y > 0:
+                y = y - 1
+            if next_flag and y < len(user.cards) - 1:
+                y = y + 1
+            if goback:
+                state = 8
+            if chosen:
+                target = user.cards[y]
+                if target in user.team:
+                    state = 8
+                else:
+                    user.team[one] = target
+                    state = 8
+                print(target.id)
+                print(user.team)
 
 
 
